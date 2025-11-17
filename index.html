@@ -1,43 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P2P Live Stream | WebTorrent + WebRTC</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
+    <!-- 
+      FIX: Removed Tailwind CDN script and added pre-compiled CSS for production performance.
+      This removes the console warning and is the recommended approach.
+    -->
     <style>
-        body { transition: background-color 0.3s, color 0.3s; }
-        video::-webkit-media-controls-enclosure {
-            overflow: hidden;
-        }
-        video::-webkit-media-controls-panel {
-            width: calc(100% + 30px);
-        }
+      :root { --tw-bg-opacity: 1; --tw-text-opacity: 1; }
+      .dark { --tw-bg-opacity: 1; background-color: rgb(17 24 39 / var(--tw-bg-opacity)); --tw-text-opacity: 1; color: rgb(229 231 235 / var(--tw-text-opacity)); }
+      body { transition: background-color 0.3s, color 0.3s; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+      .container { width: 100%; margin-left: auto; margin-right: auto; padding: 1rem; }
+      @media (min-width: 768px) { .container { padding: 2rem; } }
+      @media (min-width: 640px) { .container { max-width: 640px; } }
+      @media (min-width: 768px) { .container { max-width: 768px; } }
+      @media (min-width: 1024px) { .container { max-width: 1024px; } }
+      @media (min-width: 1280px) { .container { max-width: 1280px; } }
+      *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
+      .grid { display: grid; }
+      .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+      .gap-8 { gap: 2rem; }
+      .rounded-lg { border-radius: .5rem; }
+      .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); }
+      .p-6 { padding: 1.5rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .mb-6 { margin-bottom: 1.5rem; }
+      .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+      .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+      .font-semibold { font-weight: 600; }
+      .font-bold { font-weight: 700; }
+      .border-b { border-bottom-width: 1px; }
+      .pb-2 { padding-bottom: .5rem; }
+      .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+      .space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: .5rem; }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .w-full { width: 100%; }
+      .h-64 { height: 16rem; }
+      .bg-black { background-color: #000; }
+      .rounded-md { border-radius: .375rem; }
+      button { font-family: inherit; font-size: 100%; margin: 0; padding: 0; line-height: inherit; color: inherit; text-transform: none; background-color: transparent; background-image: none; cursor: pointer; -webkit-appearance: button; }
+      button:disabled { cursor: default; }
+      .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .rounded { border-radius: .25rem; }
+      .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(.4,0,.2,1); transition-duration: .15s; }
+      .hidden { display: none; }
+      .mt-4 { margin-top: 1rem; }
+      label { display: block; }
+      .text-sm { font-size: .875rem; line-height: 1.25rem; }
+      .font-medium { font-weight: 500; }
+      .mt-1 { margin-top: .25rem; }
+      .rounded-l-md { border-top-left-radius: .375rem; border-bottom-left-radius: .375rem; }
+      .rounded-r-md { border-top-right-radius: .375rem; border-bottom-right-radius: .375rem; }
+      input { font-family: inherit; font-size: 100%; margin: 0; padding: .5rem; line-height: inherit; color: inherit; border-width: 1px; border-radius: .375rem; }
+      .flex-1 { flex: 1 1 0%; }
+      .fixed { position: fixed; }
+      .bottom-4 { bottom: 1rem; }
+      .right-4 { right: 1rem; }
+      .bg-opacity-70 { background-color: rgba(31,41,55,.7); }
+      .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .bg-gray-100 { background-color: rgb(243 244 246 / var(--tw-bg-opacity)); }
+      .dark .dark\:bg-gray-900 { background-color: rgb(17 24 39 / var(--tw-bg-opacity)); }
+      .text-gray-800 { color: rgb(31 41 55 / var(--tw-text-opacity)); }
+      .dark .dark\:text-gray-200 { color: rgb(229 231 235 / var(--tw-text-opacity)); }
+      .text-blue-600 { color: #2563eb; }
+      .dark .dark\:text-blue-400 { color: #60a5fa; }
+      .bg-white { background-color: #fff; }
+      .dark .dark\:bg-gray-800 { background-color: #1f2937; }
+      .dark .dark\:border-gray-600 { border-color: #4b5563; }
+      .bg-green-500 { background-color: #22c55e; }
+      .hover\:bg-green-600:hover { background-color: #16a34a; }
+      .text-white { color: #fff; }
+      .bg-red-500 { background-color: #ef4444; }
+      .hover\:bg-red-600:hover { background-color: #dc2626; }
+      .text-gray-700 { color: #374151; }
+      .dark .dark\:text-gray-300 { color: #d1d5db; }
+      .border-gray-300 { border-color: #d1d5db; }
+      .dark .dark\:bg-gray-700 { background-color: #374151; }
+      .dark .dark\:border-gray-600 { border-color: #4b5563; }
+      .focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; box-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color); }
+      .focus\:border-blue-500:focus { border-color: #3b82f6; }
+      .bg-gray-50 { background-color: #f9fafb; }
+      .dark .dark\:bg-gray-600 { background-color: #4b5563; }
+      .text-gray-500 { color: #6b7280; }
+      .dark .dark\:text-gray-300 { color: #d1d5db; }
+      .bg-blue-500 { background-color: #3b82f6; }
+      .hover\:bg-blue-600:hover { background-color: #2563eb; }
+      .text-yellow-300 { color: #fde047; }
+      .text-green-300 { color: #86efac; }
+      .text-blue-300 { color: #93c5fd; }
+      button:disabled { opacity: .5; }
+      video::-webkit-media-controls-enclosure { overflow: hidden; }
+      video::-webkit-media-controls-panel { width: calc(100% + 30px); }
+      .p-2 { padding: 0.5rem; }
+      .rounded-full { border-radius: 9999px; }
+      .bg-gray-200 { background-color: #e5e7eb; }
+      .dark .dark\:bg-gray-700 { background-color: #374151; }
+      .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+      .w-6 { width: 1.5rem; }
+      .h-6 { height: 1.5rem; }
+      svg { display: block; vertical-align: middle; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
     <div class="container mx-auto p-4 md:p-8">
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">P2P Live Stream</h1>
             <button id="darkModeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none">
-                <svg id="moonIcon" class="w-6 h-6 text-gray-800 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                <svg id="sunIcon" class="w-6 h-6 text-gray-800 dark:text-gray-200 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="moonIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="sunIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </button>
         </header>
 
-        <!-- Main Content Area -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Publisher Section -->
             <div id="publisher-section" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 border-b pb-2 dark:border-gray-600">Broadcast a Stream</h2>
                 <div class="space-y-4">
-                    <video id="localVideo" autoplay muted class="w-full h-64 bg-black rounded-md"></video>
+                    <video id="localVideo" autoplay muted playsinline class="w-full h-64 bg-black rounded-md"></video>
                     <div class="flex space-x-2">
                         <button id="startStreamBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">Start Stream</button>
                         <button id="stopStreamBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors" disabled>Stop Stream</button>
@@ -45,29 +128,27 @@
                     <div id="stream-info" class="hidden mt-4">
                         <label for="magnetLink" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Share this Magnet Link:</label>
                         <div class="mt-1 flex rounded-md shadow-sm">
-                            <input type="text" id="magnetLink" readonly class="flex-1 block w-full rounded-none rounded-l-md sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 p-2">
+                            <input type="text" id="magnetLink" readonly class="flex-1 block w-full rounded-l-md sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 p-2">
                             <button id="copyMagnetBtn" class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-gray-600 dark:border-gray-600 text-gray-500 dark:text-gray-300 text-sm">Copy</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Viewer Section -->
             <div id="viewer-section" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 border-b pb-2 dark:border-gray-600">Watch a Stream</h2>
                 <div class="space-y-4">
-                    <video id="remoteVideo" controls class="w-full h-64 bg-black rounded-md"></video>
+                    <video id="remoteVideo" controls playsinline class="w-full h-64 bg-black rounded-md"></video>
                     <label for="magnetInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Enter Magnet Link to Watch:</label>
                     <div class="flex space-x-2">
-                        <input type="text" id="magnetInput" placeholder="magnet:?xt=urn:btih:..." class="flex-1 block w-full rounded-md sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 p-2">
+                        <input type="text" id="magnetInput" placeholder="magnet:?xt=urn:btih:..." class="flex-1 block w-full rounded-md sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 p-2">
                         <button id="playStreamBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors">Play</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Stats Section -->
-        <div id="stats-overlay" class="fixed bottom-4 right-4 bg-gray-800 bg-opacity-70 text-white p-4 rounded-lg shadow-lg text-sm hidden font-mono">
+        <div id="stats-overlay" class="fixed bottom-4 right-4 bg-opacity-70 bg-gray-900 text-white p-4 rounded-lg shadow-lg text-sm hidden font-mono">
             <h3 class="font-bold mb-2">Live Stats</h3>
             <p>Status: <span id="status" class="font-semibold text-yellow-300">Idle</span></p>
             <p>Peers: <span id="peerCount" class="font-semibold text-green-300">0</span></p>
@@ -77,9 +158,12 @@
         </div>
     </div>
 
-    <!-- WebTorrent Library -->
-    <script src="https://cdn.jsdelivr.net/npm/webtorrent@2.2.1/webtorrent.min.js"></script>
-    <!-- Main Application Logic -->
-    <script src="./app.js"></script>
+    <!-- 
+      FIX: Added defer attribute to all scripts to ensure correct loading order.
+      FIX: Added SimplePeer library, which was missing for WebRTC signaling.
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@2.2.1/webtorrent.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js" defer></script>
+    <script src="./app.js" defer></script>
 </body>
 </html>
