@@ -1,71 +1,329 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Live Stream | WebTorrent + WebRTC</title>
+    <title>P2P Anonymous Chat</title>
     <style>
-      /* Pre-compiled Tailwind CSS for production performance */
-      :root{--tw-bg-opacity:1;--tw-text-opacity:1}html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"}body{margin:0;line-height:inherit;transition:background-color .3s,color .3s}.dark{--tw-bg-opacity:1;background-color:rgb(17 24 39/var(--tw-bg-opacity));--tw-text-opacity:1;color:rgb(229 231 235/var(--tw-text-opacity))}*,:after,:before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}.container{width:100%;margin-left:auto;margin-right:auto;padding:1rem}@media (min-width:768px){.container{padding:2rem}}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}.grid{display:grid}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}@media (min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}.gap-8{gap:2rem}.rounded-lg{border-radius:.5rem}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.p-6{padding:1.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.font-semibold{font-weight:600}.font-bold{font-weight:700}.border-b{border-bottom-width:1px}.pb-2{padding-bottom:.5rem}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-x-2>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.5rem*var(--tw-space-x-reverse));margin-left:calc(.5rem*(1 - var(--tw-space-x-reverse)))}.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.w-full{width:100%}.h-64{height:16rem}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0/var(--tw-bg-opacity))}.rounded-md{border-radius:.375rem}button{font-family:inherit;font-size:100%;line-height:inherit;color:inherit;margin:0;padding:0;text-transform:none;-webkit-appearance:button;background-color:transparent;background-image:none;cursor:pointer}button:disabled{cursor:default}.py-2{padding-top:.5rem;padding-bottom:.5rem}.px-4{padding-left:1rem;padding-right:1rem}.rounded{border-radius:.25rem}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.hidden{display:none}.mt-4{margin-top:1rem}label{display:block}.text-sm{font-size:.875rem;line-height:1.25rem}.font-medium{font-weight:500}.mt-1{margin-top:.25rem}.rounded-l-md{border-top-left-radius:.375rem;border-bottom-left-radius:.375rem}.rounded-r-md{border-top-right-radius:.375rem;border-bottom-right-radius:.375rem}input{font-family:inherit;font-size:100%;line-height:inherit;color:inherit;margin:0;padding:.5rem;border-width:1px;border-radius:.375rem}.flex-1{flex:1 1 0%}.fixed{position:fixed}.bottom-4{bottom:1rem}.right-4{right:1rem}.bg-opacity-70{--tw-bg-opacity:.7}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}.bg-gray-100{background-color:rgb(243 244 246/var(--tw-bg-opacity))}.dark .dark\:bg-gray-900{background-color:rgb(17 24 39/var(--tw-bg-opacity))}.text-gray-800{color:rgb(31 41 55/var(--tw-text-opacity))}.dark .dark\:text-gray-200{color:rgb(229 231 235/var(--tw-text-opacity))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity))}.dark .dark\:text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250/var(--tw-text-opacity))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity))}.dark .dark\:bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55/var(--tw-bg-opacity))}.dark .dark\:border-gray-600{--tw-border-opacity:1;border-color:rgb(75 85 99/var(--tw-border-opacity))}.bg-green-500{--tw-bg-opacity:1;background-color:rgb(34 197 94/var(--tw-bg-opacity))}.hover\:bg-green-600:hover{--tw-bg-opacity:1;background-color:rgb(22 163 74/var(--tw-bg-opacity))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity))}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity))}.hover\:bg-red-600:hover{--tw-bg-opacity:1;background-color:rgb(220 38 38/var(--tw-bg-opacity))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81/var(--tw-text-opacity))}.dark .dark\:text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219/var(--tw-text-opacity))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219/var(--tw-border-opacity))}.dark .dark\:bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81/var(--tw-bg-opacity))}.dark .dark\:border-gray-600{--tw-border-opacity:1;border-color:rgb(75 85 99/var(--tw-border-opacity))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251/var(--tw-bg-opacity))}.dark .dark\:bg-gray-600{--tw-bg-opacity:1;background-color:rgb(75 85 99/var(--tw-bg-opacity))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128/var(--tw-text-opacity))}.dark .dark\:text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219/var(--tw-text-opacity))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity))}.hover\:bg-blue-600:hover{--tw-bg-opacity:1;background-color:rgb(37 99 235/var(--tw-bg-opacity))}.text-yellow-300{--tw-text-opacity:1;color:rgb(253 224 71/var(--tw-text-opacity))}.text-green-300{--tw-text-opacity:1;color:rgb(134 239 172/var(--tw-text-opacity))}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253/var(--tw-text-opacity))}:disabled{opacity:.5}video::-webkit-media-controls-enclosure{overflow:hidden}video::-webkit-media-controls-panel{width:calc(100% + 30px)}.p-2{padding:.5rem}.rounded-full{border-radius:9999px}.bg-gray-200{--tw-bg-opacity:1;background-color:rgb(229 231 235/var(--tw-bg-opacity))}.dark .dark\:bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81/var(--tw-bg-opacity))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.w-6{width:1.5rem}.h-6{height:1.5rem}svg{display:block;vertical-align:middle}
+        :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #f4f4f5; --bg-alt: #fff; --text: #18181b; --border: #d4d4d8; --primary: #3b82f6; --primary-text: #fff; }
+        html.dark { --bg: #18181b; --bg-alt: #27272a; --text: #e4e4e7; --border: #3f3f46; }
+        body { margin: 0; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; font-size: 16px; }
+        .container { width: 100%; max-width: 800px; height: 90vh; max-height: 700px; background-color: var(--bg-alt); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        #login-screen, #chat-screen { padding: 2rem; box-sizing: border-box; }
+        h1 { margin-top: 0; color: var(--primary); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background-color: var(--bg); color: var(--text); font-size: 1rem; box-sizing: border-box; }
+        button { width: 100%; padding: 0.75rem; border: none; border-radius: 4px; background-color: var(--primary); color: var(--primary-text); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: #2563eb; }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        #chat-screen { display: none; height: 100%; flex-direction: column; }
+        .chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem; }
+        #room-title { font-size: 1.25rem; font-weight: 600; }
+        #leave-btn { width: auto; background-color: #ef4444; padding: 0.5rem 1rem; }
+        .chat-main { display: flex; flex: 1; min-height: 0; }
+        .chat-messages { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 1rem; }
+        .user-list { width: 150px; border-left: 1px solid var(--border); padding-left: 1rem; }
+        .user-list h3 { margin-top: 0; font-size: 1rem; }
+        #users { list-style: none; padding: 0; }
+        #users li { padding: 0.25rem 0; }
+        .message { margin-bottom: 1rem; display: flex; flex-direction: column; }
+        .message-meta { font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem; }
+        .message-meta .sender { font-weight: bold; }
+        .message .text { padding: 0.75rem; border-radius: 8px; background-color: var(--bg); max-width: 80%; }
+        .message.mine { align-items: flex-end; }
+        .message.mine .text { background-color: var(--primary); color: var(--primary-text); }
+        .message.system .text { background: none; font-style: italic; color: #6b7280; text-align: center; padding: 0.2rem; }
+        .chat-input { display: flex; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+        .chat-input input { flex: 1; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+        .chat-input button { width: auto; border-top-left-radius: 0; border-bottom-left-radius: 0; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">P2P Live Stream</h1>
-            <button id="darkModeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none">
-                <svg id="moonIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                <svg id="sunIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            </button>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div id="publisher-section" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 border-b pb-2 dark:border-gray-600">Broadcast a Stream</h2>
-                <div class="space-y-4">
-                    <!-- FIX: Added playsinline for iOS compatibility -->
-                    <video id="localVideo" autoplay muted playsinline class="w-full h-64 bg-black rounded-md"></video>
-                    <div class="flex space-x-2">
-                        <button id="startStreamBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors">Start Stream</button>
-                        <button id="stopStreamBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors" disabled>Stop Stream</button>
-                    </div>
-                    <div id="stream-info" class="hidden mt-4">
-                        <label for="magnetLink" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Share this Magnet Link:</label>
-                        <div class="mt-1 flex rounded-md shadow-sm">
-                            <input type="text" id="magnetLink" readonly class="flex-1 block w-full rounded-l-md text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 p-2">
-                            <button id="copyMagnetBtn" class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-gray-600 dark:border-gray-600 text-gray-500 dark:text-gray-300 text-sm">Copy</button>
-                        </div>
-                    </div>
-                </div>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <h1>P2P Anonymous Chat</h1>
+            <p>No servers. No accounts. Just you and your peers.</p>
+            <div class="form-group">
+                <label for="room-name">Room Name</label>
+                <input type="text" id="room-name" placeholder="e.g., secret-project-alpha">
             </div>
-
-            <div id="viewer-section" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 border-b pb-2 dark:border-gray-600">Watch a Stream</h2>
-                <div class="space-y-4">
-                    <!-- FIX: Added playsinline for iOS compatibility -->
-                    <video id="remoteVideo" controls playsinline class="w-full h-64 bg-black rounded-md"></video>
-                    <label for="magnetInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Enter Magnet Link to Watch:</label>
-                    <div class="flex space-x-2">
-                        <input type="text" id="magnetInput" placeholder="magnet:?xt=urn:btih:..." class="flex-1 block w-full rounded-md text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 p-2">
-                        <button id="playStreamBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors">Play</button>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label for="nickname">Nickname</label>
+                <input type="text" id="nickname" placeholder="e.g., anon-user-123">
             </div>
+            <button id="join-btn">Join Room</button>
         </div>
 
-        <div id="stats-overlay" class="fixed bottom-4 right-4 bg-opacity-70 bg-gray-900 text-white p-4 rounded-lg shadow-lg text-sm hidden font-mono">
-            <h3 class="font-bold mb-2">Live Stats</h3>
-            <p>Status: <span id="status" class="font-semibold text-yellow-300">Idle</span></p>
-            <p>Peers: <span id="peerCount" class="font-semibold text-green-300">0</span></p>
-            <p>Latency: <span id="latency" class="font-semibold text-blue-300">N/A</span></p>
-            <p>DL Speed: <span id="downloadSpeed" class="font-semibold">0 KB/s</span></p>
-            <p>UL Speed: <span id="uploadSpeed" class="font-semibold">0 KB/s</span></p>
+        <!-- Chat Screen -->
+        <div id="chat-screen">
+            <header class="chat-header">
+                <h2 id="room-title"></h2>
+                <button id="leave-btn">Leave Room</button>
+            </header>
+            <main class="chat-main">
+                <div class="chat-messages" id="messages-container">
+                    <!-- Messages will be appended here -->
+                </div>
+                <aside class="user-list">
+                    <h3>Users (<span id="user-count">0</span>)</h3>
+                    <ul id="users"></ul>
+                </aside>
+            </main>
+            <footer class="chat-input">
+                <input type="text" id="message-input" placeholder="Type your message...">
+                <button id="send-btn">Send</button>
+            </footer>
         </div>
     </div>
 
-    <!-- Libraries are loaded with `defer` to ensure they run in order before app.js -->
-    <script src="https://cdn.jsdelivr.net/npm/webtorrent@2.2.1/webtorrent.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js" defer></script>
-    <script src="./app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@2.2.1/webtorrent.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof WebTorrent !== 'function' || typeof SimplePeer !== 'function') {
+                alert("A required library failed to load. Please check your network or ad blocker.");
+                return;
+            }
+
+            const loginScreen = document.getElementById('login-screen');
+            const chatScreen = document.getElementById('chat-screen');
+            const joinBtn = document.getElementById('join-btn');
+            const leaveBtn = document.getElementById('leave-btn');
+            const sendBtn = document.getElementById('send-btn');
+            const roomNameInput = document.getElementById('room-name');
+            const nicknameInput = document.getElementById('nickname');
+            const messageInput = document.getElementById('message-input');
+            const messagesContainer = document.getElementById('messages-container');
+            const roomTitle = document.getElementById('room-title');
+            const usersList = document.getElementById('users');
+            const userCount = document.getElementById('user-count');
+
+            let chat = null;
+
+            class P2PChat {
+                constructor(roomName, nickname) {
+                    this.roomName = roomName;
+                    this.nickname = nickname;
+                    this.peers = new Map();
+                    this.client = new WebTorrent();
+                    this.infoHash = null;
+                }
+
+                async start() {
+                    this.infoHash = await this._getRoomInfoHash(this.roomName);
+                    this.torrent = this.client.add(this.infoHash, { announce: ['wss://tracker.openwebtorrent.com', 'wss://tracker.webtorrent.dev'] });
+
+                    this.torrent.on('wire', (wire) => {
+                        console.log('Found a peer via WebTorrent. Attempting WebRTC handshake.');
+                        this._setupPeerConnection(wire, false);
+                    });
+                    
+                    this.displaySystemMessage(`Joined room: ${this.roomName}. Waiting for peers...`);
+                }
+
+                _setupPeerConnection(wire, initiator) {
+                    const peer = new SimplePeer({ initiator, trickle: false });
+                    const peerId = wire.peerId;
+
+                    if (this.peers.has(peerId)) {
+                        console.log('Already connected to peer:', peerId);
+                        return;
+                    }
+                    this.peers.set(peerId, { peer, nickname: null });
+
+                    peer.on('signal', (data) => wire.extended('rtc_signal', JSON.stringify(data)));
+                    wire.on('extended', (ext, payload) => { if (ext === 'rtc_signal') peer.signal(JSON.parse(payload.toString())) });
+                    
+                    peer.on('connect', () => {
+                        console.log('WebRTC connection established with', peerId);
+                        this._sendToPeer(peerId, { type: 'handshake', nickname: this.nickname });
+                    });
+
+                    peer.on('data', (data) => this._onPeerData(peerId, data));
+                    peer.on('close', () => this._removePeer(peerId));
+                    peer.on('error', () => this._removePeer(peerId));
+                }
+
+                _onPeerData(peerId, data) {
+                    try {
+                        const message = JSON.parse(data.toString());
+                        const peerInfo = this.peers.get(peerId);
+
+                        switch (message.type) {
+                            case 'handshake':
+                                peerInfo.nickname = message.nickname;
+                                this.displaySystemMessage(`${message.nickname} has joined the chat.`);
+                                this._updateUserList();
+                                this._sendToPeer(peerId, { type: 'handshake_ack', nickname: this.nickname });
+                                break;
+                            case 'handshake_ack':
+                                if (!peerInfo.nickname) {
+                                    peerInfo.nickname = message.nickname;
+                                    this.displaySystemMessage(`${message.nickname} is in the chat.`);
+                                    this._updateUserList();
+                                }
+                                break;
+                            case 'chat':
+                                this.displayChatMessage(peerInfo.nickname, message.text);
+                                break;
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse peer data:', e);
+                    }
+                }
+
+                _removePeer(peerId) {
+                    const peerInfo = this.peers.get(peerId);
+                    if (peerInfo) {
+                        this.peers.delete(peerId);
+                        if (peerInfo.nickname) {
+                            this.displaySystemMessage(`${peerInfo.nickname} has left the chat.`);
+                        }
+                        this._updateUserList();
+                    }
+                }
+
+                _updateUserList() {
+                    usersList.innerHTML = '';
+                    let count = 0;
+                    const meItem = document.createElement('li');
+                    meItem.textContent = `${this.nickname} (You)`;
+                    usersList.appendChild(meItem);
+                    count++;
+
+                    this.peers.forEach(p => {
+                        if (p.nickname) {
+                            const li = document.createElement('li');
+                            li.textContent = p.nickname;
+                            usersList.appendChild(li);
+                            count++;
+                        }
+                    });
+                    userCount.textContent = count;
+                }
+                
+                sendMessage(text) {
+                    this.displayChatMessage('You', text);
+                    this._broadcast({ type: 'chat', text });
+                }
+
+                _broadcast(message) {
+                    const msgString = JSON.stringify(message);
+                    this.peers.forEach(({ peer }) => {
+                        if (peer.connected) {
+                            peer.send(msgString);
+                        }
+                    });
+                }
+                
+                _sendToPeer(peerId, message) {
+                    const { peer } = this.peers.get(peerId);
+                    if (peer && peer.connected) {
+                        peer.send(JSON.stringify(message));
+                    }
+                }
+                
+                displaySystemMessage(text) {
+                    this._displayMessage({ text, isSystem: true });
+                }
+
+                displayChatMessage(sender, text) {
+                    this._displayMessage({ sender, text, isMine: sender === 'You' });
+                }
+
+                _displayMessage({ sender, text, isMine = false, isSystem = false }) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.classList.add('message');
+                    if (isMine) msgDiv.classList.add('mine');
+                    if (isSystem) msgDiv.classList.add('system');
+
+                    if (!isSystem) {
+                        const metaDiv = document.createElement('div');
+                        metaDiv.classList.add('message-meta');
+                        metaDiv.innerHTML = `<span class="sender">${sender}</span>`;
+                        msgDiv.appendChild(metaDiv);
+                    }
+
+                    const textDiv = document.createElement('div');
+                    textDiv.classList.add('text');
+                    textDiv.textContent = text;
+                    msgDiv.appendChild(textDiv);
+                    
+                    messagesContainer.appendChild(msgDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+
+                async _getRoomInfoHash(roomName) {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(`p2p-chat-room:${roomName}`); // Salting the room name
+                    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+
+                destroy() {
+                    this.peers.forEach(({ peer }) => peer.destroy());
+                    this.peers.clear();
+                    if (this.torrent) this.torrent.destroy();
+                    if (this.client) this.client.destroy();
+                    console.log('Chat session destroyed.');
+                }
+            }
+
+            // Event Listeners
+            joinBtn.addEventListener('click', async () => {
+                const room = roomNameInput.value.trim();
+                const nick = nicknameInput.value.trim();
+                if (!room || !nick) {
+                    return alert('Room name and nickname are required.');
+                }
+                
+                joinBtn.disabled = true;
+                joinBtn.textContent = 'Joining...';
+                
+                try {
+                    chat = new P2PChat(room, nick);
+                    await chat.start();
+                    
+                    loginScreen.style.display = 'none';
+                    chatScreen.style.display = 'flex';
+                    roomTitle.textContent = room;
+                    chat._updateUserList();
+                } catch (err) {
+                    alert('Could not join room. See console for details.');
+                    console.error(err);
+                } finally {
+                    joinBtn.disabled = false;
+                    joinBtn.textContent = 'Join Room';
+                }
+            });
+            
+            leaveBtn.addEventListener('click', () => {
+                if (chat) chat.destroy();
+                chat = null;
+                chatScreen.style.display = 'none';
+                loginScreen.style.display = 'block';
+                messagesContainer.innerHTML = '';
+                usersList.innerHTML = '';
+            });
+
+            sendBtn.addEventListener('click', () => {
+                const msg = messageInput.value.trim();
+                if (msg && chat) {
+                    chat.sendMessage(msg);
+                    messageInput.value = '';
+                }
+            });
+
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendBtn.click();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
