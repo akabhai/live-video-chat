@@ -1,432 +1,308 @@
 // =============================================================================
-//  Main Application Logic (app.js) - CORRECTED
+//  Main Application Logic (app.js) - FINAL CORRECTED VERSION
 // =============================================================================
-// This logic will run after the DOM is ready and all deferred scripts are loaded.
-// FIX: Added `SimplePeer` which was missing and is required for WebRTC data channels.
-// FIX: Changed WebTorrent client instantiation to check for `WebTorrent.WEBRTC_SUPPORT`.
+// FIX: The entire script is wrapped in a DOMContentLoaded listener.
+// This is the most important fix, guaranteeing that all HTML is parsed and
+// all deferred scripts (WebTorrent, SimplePeer) are loaded and ready
+// before our application code tries to use them. This solves the race condition.
+document.addEventListener('DOMContentLoaded', () => {
 
-if (!WebTorrent.WEBRTC_SUPPORT) {
-    alert("Your browser does not support WebRTC, which is required for this application to work.");
-}
-
-// Configuration
-const CONFIG = {
-    CHUNK_DURATION: 2000,
-    STREAM_MIME_TYPE: 'video/webm; codecs="vp8, opus"',
-    TORRENT_FILE_NAME: 'livestream.webm',
-    TRACKERS: [
-        'wss://tracker.openwebtorrent.com',
-        'wss://tracker.webtorrent.dev',
-    ],
-    RTC_CONFIG: {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-        ]
-    }
-};
-
-// UI Elements
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
-const startStreamBtn = document.getElementById('startStreamBtn');
-const stopStreamBtn = document.getElementById('stopStreamBtn');
-const playStreamBtn = document.getElementById('playStreamBtn');
-const magnetLinkInput = document.getElementById('magnetLink');
-const magnetInput = document.getElementById('magnetInput');
-const copyMagnetBtn = document.getElementById('copyMagnetBtn');
-const streamInfoDiv = document.getElementById('stream-info');
-const statsOverlay = document.getElementById('stats-overlay');
-const statusEl = document.getElementById('status');
-const peerCountEl = document.getElementById('peerCount');
-const latencyEl = document.getElementById('latency');
-const downloadSpeedEl = document.getElementById('downloadSpeed');
-const uploadSpeedEl = document.getElementById('uploadSpeed');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const sunIcon = document.getElementById('sunIcon');
-const moonIcon = document.getElementById('moonIcon');
-
-let publisher = null;
-let viewer = null;
-let statsInterval = null;
-
-// =========================================================================
-//  Event Handlers
-// =========================================================================
-startStreamBtn.addEventListener('click', async () => {
-    if (publisher) return;
-    publisher = new Publisher(CONFIG);
-    try {
-        await publisher.start();
-        magnetLinkInput.value = publisher.magnetURI;
-        streamInfoDiv.style.display = 'block';
-        startStreamBtn.disabled = true;
-        stopStreamBtn.disabled = false;
-        playStreamBtn.disabled = true;
-        magnetInput.disabled = true;
-        updateStatus('Broadcasting', 'green');
-        statsOverlay.style.display = 'block';
-        startStatsUpdater();
-    } catch (err) {
-        console.error("Failed to start stream:", err);
-        alert("Error starting stream: " + err.message);
-        if (publisher) publisher.stop();
-        publisher = null;
-    }
-});
-
-stopStreamBtn.addEventListener('click', () => {
-    if (!publisher) return;
-    publisher.stop();
-    publisher = null;
-    streamInfoDiv.style.display = 'none';
-    magnetLinkInput.value = '';
-    startStreamBtn.disabled = false;
-    stopStreamBtn.disabled = true;
-    playStreamBtn.disabled = false;
-    magnetInput.disabled = false;
-    localVideo.srcObject = null;
-    updateStatus('Idle', 'yellow');
-    stopStatsUpdater();
-    statsOverlay.style.display = 'none';
-});
-
-playStreamBtn.addEventListener('click', async () => {
-    const magnetURI = magnetInput.value.trim();
-    if (!magnetURI.startsWith('magnet:')) {
-        alert("Please enter a valid magnet link.");
+    // FIX: Add explicit checks to ensure libraries loaded correctly.
+    if (typeof WebTorrent !== 'function' || typeof SimplePeer !== 'function') {
+        alert("A required library (WebTorrent or SimplePeer) failed to load. This can be caused by a network issue or an ad blocker. Please refresh the page or check your browser's console.");
         return;
     }
-    if (viewer) viewer.destroy();
+    if (!WebTorrent.WEBRTC_SUPPORT) {
+        alert("Your browser does not support WebRTC, which is required for this application to work.");
+        return;
+    }
 
-    playStreamBtn.textContent = 'Connecting...';
-    playStreamBtn.disabled = true;
-    startStreamBtn.disabled = true;
+    // --- All application logic is now safely inside this listener ---
 
-    try {
-        viewer = new Viewer(CONFIG);
-        await viewer.start(magnetURI);
+    const CONFIG = {
+        CHUNK_DURATION: 2000,
+        STREAM_MIME_TYPE: 'video/webm; codecs="vp8, opus"',
+        TORRENT_FILE_NAME: 'livestream.webm',
+        TRACKERS: ['wss://tracker.openwebtorrent.com', 'wss://tracker.webtorrent.dev'],
+        RTC_CONFIG: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' }] }
+    };
+
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const startStreamBtn = document.getElementById('startStreamBtn');
+    const stopStreamBtn = document.getElementById('stopStreamBtn');
+    const playStreamBtn = document.getElementById('playStreamBtn');
+    const magnetLinkInput = document.getElementById('magnetLink');
+    const magnetInput = document.getElementById('magnetInput');
+    const copyMagnetBtn = document.getElementById('copyMagnetBtn');
+    const streamInfoDiv = document.getElementById('stream-info');
+    const statsOverlay = document.getElementById('stats-overlay');
+    const statusEl = document.getElementById('status');
+    const peerCountEl = document.getElementById('peerCount');
+    const latencyEl = document.getElementById('latency');
+    const downloadSpeedEl = document.getElementById('downloadSpeed');
+    const uploadSpeedEl = document.getElementById('uploadSpeed');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+
+    let publisher = null;
+    let viewer = null;
+    let statsInterval = null;
+
+    startStreamBtn.addEventListener('click', async () => {
+        if (publisher) return;
         
-        updateStatus('Connecting...', 'blue');
-        statsOverlay.style.display = 'block';
-        startStatsUpdater();
-    } catch (err) {
-        console.error("Failed to play stream:", err);
-        alert("Error playing stream: " + err.message);
-        if (viewer) viewer.destroy();
-        viewer = null;
-        playStreamBtn.textContent = 'Play';
-        playStreamBtn.disabled = false;
+        startStreamBtn.disabled = true;
+        startStreamBtn.textContent = 'Initializing...';
+        
+        try {
+            publisher = new Publisher(CONFIG);
+            await publisher.start();
+            magnetLinkInput.value = publisher.magnetURI;
+            streamInfoDiv.style.display = 'block';
+            stopStreamBtn.disabled = false;
+            playStreamBtn.disabled = true;
+            magnetInput.disabled = true;
+            updateStatus('Broadcasting', 'green');
+            statsOverlay.style.display = 'block';
+            startStatsUpdater();
+        } catch (err) {
+            console.error("Failed to start stream:", err);
+            alert("Error starting stream: " + err.message);
+            if (publisher) publisher.stop();
+            publisher = null;
+            startStreamBtn.disabled = false;
+        } finally {
+            startStreamBtn.textContent = 'Start Stream';
+        }
+    });
+
+    stopStreamBtn.addEventListener('click', () => {
+        if (!publisher) return;
+        publisher.stop();
+        publisher = null;
+        streamInfoDiv.style.display = 'none';
+        magnetLinkInput.value = '';
         startStreamBtn.disabled = false;
-        updateStatus('Error', 'red');
-    }
-});
-
-copyMagnetBtn.addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(magnetLinkInput.value);
-        copyMagnetBtn.textContent = 'Copied!';
-        setTimeout(() => { copyMagnetBtn.textContent = 'Copy'; }, 2000);
-    } catch (err) {
-        console.error('Failed to copy magnet link: ', err);
-        alert('Could not copy link to clipboard.');
-    }
-});
-
-darkModeToggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    sunIcon.classList.toggle('hidden');
-    moonIcon.classList.toggle('hidden');
-    localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
-});
-
-if (localStorage.getItem('darkMode') === 'true') {
-    document.documentElement.classList.add('dark');
-    sunIcon.classList.remove('hidden');
-    moonIcon.classList.add('hidden');
-}
-
-// =========================================================================
-//  Utility Functions
-// =========================================================================
-function updateStatus(text, color) {
-    statusEl.textContent = text;
-    statusEl.className = `font-semibold text-${color}-300`;
-}
-
-function formatSpeed(bytes) {
-    if (bytes === 0) return '0 KB/s';
-    const k = 1024;
-    const sizes = ['Bytes/s', 'KB/s', 'MB/s', 'GB/s'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function startStatsUpdater() {
-    if (statsInterval) clearInterval(statsInterval);
-    statsInterval = setInterval(() => {
-        const client = publisher ? publisher.client : (viewer ? viewer.client : null);
-        if (!client || client.destroyed) {
-            stopStatsUpdater();
-            return;
+        stopStreamBtn.disabled = true;
+        playStreamBtn.disabled = false;
+        magnetInput.disabled = false;
+        if(localVideo.srcObject) {
+            localVideo.srcObject.getTracks().forEach(track => track.stop());
+            localVideo.srcObject = null;
         }
-        
-        const torrent = client.torrents[0];
-        peerCountEl.textContent = torrent ? torrent.numPeers : 0;
-        downloadSpeedEl.textContent = formatSpeed(client.downloadSpeed);
-        uploadSpeedEl.textContent = formatSpeed(client.uploadSpeed);
-        
-        if (viewer && viewer.latency > 0) {
-            latencyEl.textContent = `${viewer.latency.toFixed(0)} ms`;
-        } else {
-            latencyEl.textContent = 'N/A';
+        updateStatus('Idle', 'yellow');
+        stopStatsUpdater();
+        statsOverlay.style.display = 'none';
+    });
+
+    playStreamBtn.addEventListener('click', async () => {
+        const magnetURI = magnetInput.value.trim();
+        if (!magnetURI.startsWith('magnet:')) {
+            return alert("Please enter a valid magnet link.");
         }
-    }, 1000);
-}
+        if (viewer) viewer.destroy();
 
-function stopStatsUpdater() {
-    clearInterval(statsInterval);
-    statsInterval = null;
-}
-
-// =============================================================================
-//  Encryption Utilities
-// =============================================================================
-class CryptoUtils {
-    static async generateKey() { return window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']); }
-    static async exportKey(key) { return window.crypto.subtle.exportKey('jwk', key); }
-    static async importKey(jwk) { return window.crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']); }
-    static async encrypt(data, key) {
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        const encryptedData = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
-        return { encryptedData, iv };
-    }
-    static async decrypt(encryptedData, key, iv) { return window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData); }
-}
-
-// =============================================================================
-//  Publisher Class
-// =============================================================================
-class Publisher {
-    constructor(config) {
-        this.config = config;
-        this.client = new WebTorrent({ rtcConfig: config.RTC_CONFIG });
-        this.mediaStream = null;
-        this.mediaRecorder = null;
-        this.chunkCounter = 0;
-        this.torrent = null;
-        this.magnetURI = null;
-        this.encryptionKey = null;
-        this.exportedKey = null;
-        this.peers = new Map();
-    }
-
-    async start() {
-        this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true });
-        localVideo.srcObject = this.mediaStream;
+        playStreamBtn.disabled = true;
+        playStreamBtn.textContent = 'Connecting...';
+        startStreamBtn.disabled = true;
         
-        this.encryptionKey = await CryptoUtils.generateKey();
-        this.exportedKey = await CryptoUtils.exportKey(this.encryptionKey);
-        console.log("Generated session encryption key.");
-        
-        await this._createTorrent();
-        console.log(`Torrent created. Magnet URI: ${this.magnetURI}`);
-        
-        this._setupMediaRecorder();
-        this._listenForPeers();
-    }
+        try {
+            viewer = new Viewer(CONFIG);
+            await viewer.start(magnetURI);
+            updateStatus('Connecting...', 'blue');
+            statsOverlay.style.display = 'block';
+            startStatsUpdater();
+        } catch (err) {
+            console.error("Failed to play stream:", err);
+            alert("Error playing stream: " + err.message);
+            if (viewer) viewer.destroy();
+            viewer = null;
+            startStreamBtn.disabled = false;
+            updateStatus('Error', 'red');
+        } finally {
+            playStreamBtn.textContent = 'Play';
+            playStreamBtn.disabled = false;
+        }
+    });
 
-    stop() {
-        console.log("Stopping stream...");
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') this.mediaRecorder.stop();
-        if (this.mediaStream) this.mediaStream.getTracks().forEach(track => track.stop());
-        this.peers.forEach(peer => peer.destroy());
-        this.peers.clear();
-        if (!this.client.destroyed) this.client.destroy();
-        console.log("Stream stopped.");
-    }
+    copyMagnetBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(magnetLinkInput.value);
+            copyMagnetBtn.textContent = 'Copied!';
+            setTimeout(() => { copyMagnetBtn.textContent = 'Copy'; }, 2000);
+        } catch (err) {
+            alert('Could not copy link. Please copy it manually.');
+        }
+    });
     
-    _createTorrent() {
-        return new Promise((resolve, reject) => {
-            const placeholderFile = new File([new Uint8Array(1)], this.config.TORRENT_FILE_NAME, { type: this.config.STREAM_MIME_TYPE });
-            this.client.seed(placeholderFile, { announce: this.config.TRACKERS }, (torrent) => {
-                this.torrent = torrent;
-                this.magnetURI = torrent.magnetURI;
-                this.torrent.pieces = new Array(1000000); // Virtual pieces
-                this.torrent.length = this.torrent.pieceLength * this.torrent.pieces.length;
-                resolve();
-            });
-            this.client.on('error', reject);
-        });
+    darkModeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        sunIcon.classList.toggle('hidden');
+        moonIcon.classList.toggle('hidden');
+        localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+    });
+
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.documentElement.classList.add('dark');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
     }
 
-    _setupMediaRecorder() {
-        this.mediaRecorder = new MediaRecorder(this.mediaStream, { mimeType: this.config.STREAM_MIME_TYPE, videoBitsPerSecond: 2500000 });
-        this.mediaRecorder.ondataavailable = async (event) => {
-            if (event.data.size > 0) {
-                const chunkIndex = this.chunkCounter++;
-                const chunkData = await event.data.arrayBuffer();
-                const { encryptedData, iv } = await CryptoUtils.encrypt(chunkData, this.encryptionKey);
-                
-                this.torrent.store.put(chunkIndex, Buffer.from(encryptedData), (err) => {
-                    if (err) return console.error("Error storing piece:", err);
-                    this._broadcastMetadata({
-                        type: 'chunk',
-                        index: chunkIndex,
-                        iv: Array.from(iv),
-                        timestamp: Date.now(),
-                    });
+    function updateStatus(text, color) { statusEl.textContent = text; statusEl.className = `font-semibold text-${color}-300`; }
+    function formatSpeed(bytes) {
+        if (bytes === 0) return '0 KB/s';
+        const k = 1024, sizes = ['Bytes/s', 'KB/s', 'MB/s', 'GB/s'], i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    function startStatsUpdater() {
+        if (statsInterval) clearInterval(statsInterval);
+        statsInterval = setInterval(() => {
+            const client = publisher?.client || viewer?.client;
+            if (!client || client.destroyed) return stopStatsUpdater();
+            const torrent = client.torrents[0];
+            peerCountEl.textContent = torrent ? torrent.numPeers : 0;
+            downloadSpeedEl.textContent = formatSpeed(client.downloadSpeed);
+            uploadSpeedEl.textContent = formatSpeed(client.uploadSpeed);
+            if (viewer?.latency > 0) latencyEl.textContent = `${viewer.latency.toFixed(0)} ms`;
+        }, 1000);
+    }
+    function stopStatsUpdater() { clearInterval(statsInterval); statsInterval = null; }
+
+    class CryptoUtils {
+        static async generateKey() { return window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']); }
+        static async exportKey(key) { return window.crypto.subtle.exportKey('jwk', key); }
+        static async importKey(jwk) { return window.crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']); }
+        static async encrypt(data, key) {
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encryptedData = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+            return { encryptedData, iv };
+        }
+        static async decrypt(encryptedData, key, iv) { return window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData); }
+    }
+
+    class Publisher {
+        constructor(config) { this.config = config; this.client = new WebTorrent({ rtcConfig: config.RTC_CONFIG }); this.peers = new Map(); }
+        async start() {
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true });
+            localVideo.srcObject = this.mediaStream;
+            this.encryptionKey = await CryptoUtils.generateKey();
+            this.exportedKey = await CryptoUtils.exportKey(this.encryptionKey);
+            await new Promise((resolve, reject) => {
+                const file = new File([new Uint8Array(1)], this.config.TORRENT_FILE_NAME, { type: this.config.STREAM_MIME_TYPE });
+                this.client.seed(file, { announce: this.config.TRACKERS }, torrent => {
+                    this.torrent = torrent;
+                    this.magnetURI = torrent.magnetURI;
+                    this.torrent.pieces = new Array(1e6);
+                    this.torrent.length = this.torrent.pieceLength * this.torrent.pieces.length;
+                    resolve();
                 });
-            }
-        };
-        this.mediaRecorder.start(this.config.CHUNK_DURATION);
-    }
-
-    _listenForPeers() {
-        this.torrent.on('wire', (wire) => {
-            console.log('New peer connected:', wire.peerId);
+                this.client.on('error', err => reject(err));
+            });
+            this.mediaRecorder = new MediaRecorder(this.mediaStream, { mimeType: this.config.STREAM_MIME_TYPE, videoBitsPerSecond: 2500000 });
+            this.chunkCounter = 0;
+            this.mediaRecorder.ondataavailable = async e => {
+                if (e.data.size > 0) {
+                    const index = this.chunkCounter++;
+                    const data = await e.data.arrayBuffer();
+                    const { encryptedData, iv } = await CryptoUtils.encrypt(data, this.encryptionKey);
+                    this.torrent.store.put(index, Buffer.from(encryptedData), err => {
+                        if (err) return console.error("Error storing piece:", err);
+                        this._broadcastMetadata({ type: 'chunk', index, iv: Array.from(iv), timestamp: Date.now() });
+                    });
+                }
+            };
+            this.mediaRecorder.start(this.config.CHUNK_DURATION);
+            this.torrent.on('wire', wire => this._setupPeer(wire));
+        }
+        stop() {
+            this.mediaRecorder?.stop();
+            this.mediaStream?.getTracks().forEach(track => track.stop());
+            this.peers.forEach(peer => peer.destroy());
+            this.peers.clear();
+            if (!this.client.destroyed) this.client.destroy();
+        }
+        _setupPeer(wire) {
             const peer = new SimplePeer({ initiator: true, trickle: false, config: this.config.RTC_CONFIG });
-            
             peer.on('signal', data => wire.extended('rtc_signal', JSON.stringify(data)));
-            wire.on('extended', (ext, payload) => { if (ext === 'rtc_signal') peer.signal(JSON.parse(payload.toString())) });
-
+            wire.on('extended', (ext, payload) => { if (ext === 'rtc_signal') peer.signal(JSON.parse(payload.toString())); });
             peer.on('connect', () => {
-                console.log('WebRTC DataChannel established with peer:', wire.peerId);
                 this.peers.set(wire.peerId, peer);
                 peer.send(JSON.stringify({ type: 'init', mimeType: this.config.STREAM_MIME_TYPE, encryptionKey: this.exportedKey }));
             });
-            peer.on('close', () => this.peers.delete(wire.peerId));
-            peer.on('error', () => this.peers.delete(wire.peerId));
-        });
+            const cleanup = () => this.peers.delete(wire.peerId);
+            peer.on('close', cleanup);
+            peer.on('error', cleanup);
+        }
+        _broadcastMetadata(data) {
+            const msg = JSON.stringify(data);
+            this.peers.forEach(p => p.connected && p.send(msg));
+        }
     }
-    
-    _broadcastMetadata(metadata) {
-        const message = JSON.stringify(metadata);
-        this.peers.forEach(peer => { if (peer.connected) peer.send(message) });
-    }
-}
 
-// =============================================================================
-//  Player and Viewer Classes
-// =============================================================================
-class Player {
-    constructor(videoElement, mimeType) {
-        this.videoElement = videoElement;
-        this.mediaSource = new MediaSource();
-        this.sourceBuffer = null;
-        this.queue = [];
-        this.isAppending = false;
-        
-        this.videoElement.src = URL.createObjectURL(this.mediaSource);
-        this.mediaSource.addEventListener('sourceopen', () => {
-            this.sourceBuffer = this.mediaSource.addSourceBuffer(mimeType);
-            this.sourceBuffer.addEventListener('updateend', () => {
-                this.isAppending = false;
-                this._processQueue();
+    class Player {
+        constructor(video, mime) {
+            this.video = video; this.queue = []; this.isAppending = false;
+            this.mediaSource = new MediaSource();
+            this.video.src = URL.createObjectURL(this.mediaSource);
+            this.mediaSource.addEventListener('sourceopen', () => {
+                this.sourceBuffer = this.mediaSource.addSourceBuffer(mime);
+                this.sourceBuffer.addEventListener('updateend', () => { this.isAppending = false; this._processQueue(); });
             });
-        });
+        }
+        append(chunk) { this.queue.push(chunk); if (!this.isAppending) this._processQueue(); }
+        _processQueue() {
+            if (this.queue.length > 0 && this.sourceBuffer && !this.sourceBuffer.updating) {
+                this.isAppending = true;
+                try {
+                    this.sourceBuffer.appendBuffer(this.queue.shift());
+                    const end = this.video.buffered.length ? this.video.buffered.end(this.video.buffered.length - 1) : 0;
+                    if (end - this.video.currentTime > 5) this.video.currentTime = end - 0.5;
+                } catch (e) { this.isAppending = false; console.error("Buffer append error:", e); }
+            }
+        }
     }
 
-    append(chunk) {
-        this.queue.push(chunk);
-        if (!this.isAppending) this._processQueue();
-    }
-    
-    _processQueue() {
-        if (this.queue.length > 0 && this.sourceBuffer && !this.sourceBuffer.updating) {
-            this.isAppending = true;
+    class Viewer {
+        constructor(config) { this.config = config; this.client = new WebTorrent({ rtcConfig: config.RTC_CONFIG }); this.pendingChunks = new Map(); }
+        start(magnet) {
+            return new Promise((resolve, reject) => {
+                this.torrent = this.client.add(magnet, { announce: this.config.TRACKERS });
+                this.torrent.on('wire', wire => this._setupPeer(wire));
+                this.torrent.on('piece', (i, buf) => this._handlePiece(i, buf));
+                this.torrent.on('error', reject); this.client.on('error', reject);
+                setTimeout(() => { if (!this.player) reject(new Error("Connection timed out.")); }, 20000);
+            });
+        }
+        destroy() { if (!this.client.destroyed) this.client.destroy(); }
+        _setupPeer(wire) {
+            const peer = new SimplePeer({ initiator: false, trickle: false, config: this.config.RTC_CONFIG });
+            peer.on('signal', data => wire.extended('rtc_signal', JSON.stringify(data)));
+            wire.on('extended', (ext, payload) => { if (ext === 'rtc_signal') peer.signal(JSON.parse(payload.toString())); });
+            peer.on('data', data => this._handleMetadata(JSON.parse(data.toString())));
+            peer.on('error', err => console.error("WebRTC peer error:", err));
+        }
+        async _handleMetadata(data) {
+            if (data.type === 'init' && !this.player) {
+                this.encryptionKey = await CryptoUtils.importKey(data.encryptionKey);
+                this.player = new Player(remoteVideo, data.mimeType);
+                updateStatus('Streaming', 'green');
+            } else if (data.type === 'chunk' && this.encryptionKey) {
+                this.pendingChunks.set(data.index, { iv: data.iv, timestamp: data.timestamp });
+                this.torrent.select(data.index, data.index, true);
+            }
+        }
+        async _handlePiece(index, buffer) {
+            const meta = this.pendingChunks.get(index);
+            if (!meta) return;
             try {
-                this.sourceBuffer.appendBuffer(this.queue.shift());
-                const bufferedEnd = this.videoElement.buffered.length ? this.videoElement.buffered.end(this.videoElement.buffered.length - 1) : 0;
-                if (bufferedEnd - this.videoElement.currentTime > 5) {
-                    this.videoElement.currentTime = bufferedEnd - 0.5;
-                }
-            } catch (e) {
-                console.error("Error appending buffer:", e);
-                this.isAppending = false;
-            }
+                const chunk = await CryptoUtils.decrypt(buffer, this.encryptionKey, new Uint8Array(meta.iv));
+                this.player.append(chunk);
+                this.pendingChunks.delete(index);
+                this.latency = Date.now() - meta.timestamp;
+                if (remoteVideo.paused) remoteVideo.play().catch(()=>{});
+            } catch (e) { console.error(`Decryption failed for chunk ${index}:`, e); }
         }
     }
-}
-
-class Viewer {
-    constructor(config) {
-        this.config = config;
-        this.client = new WebTorrent({ rtcConfig: config.RTC_CONFIG });
-        this.torrent = null;
-        this.player = null;
-        this.encryptionKey = null;
-        this.pendingChunks = new Map();
-        this.nextChunkIndex = 0;
-        this.latency = 0;
-    }
-
-    start(magnetURI) {
-        return new Promise((resolve, reject) => {
-            console.log("Joining stream:", magnetURI);
-            this.torrent = this.client.add(magnetURI, { announce: this.config.TRACKERS });
-            
-            this.torrent.on('infoHash', () => console.log('Viewer got info hash'));
-            this.torrent.on('wire', (wire) => this._setupWebRTC(wire));
-            this.torrent.on('piece', (index, buffer) => this._handlePiece(index, buffer));
-            this.torrent.on('error', err => {
-                console.error('Torrent error:', err);
-                reject(err);
-            });
-            this.client.on('error', err => {
-                console.error('WebTorrent client error:', err);
-                reject(err);
-            });
-            
-            // Timeout if we can't find peers
-            setTimeout(() => {
-                if (!this.player) reject(new Error("Could not connect to stream peers in time."));
-            }, 20000); // 20 seconds
-        });
-    }
-
-    destroy() {
-        if (!this.client.destroyed) this.client.destroy();
-        console.log("Viewer destroyed.");
-    }
-
-    _setupWebRTC(wire) {
-        const peer = new SimplePeer({ initiator: false, trickle: false, config: this.config.RTC_CONFIG });
-        peer.on('signal', data => wire.extended('rtc_signal', JSON.stringify(data)));
-        wire.on('extended', (ext, payload) => { if (ext === 'rtc_signal') peer.signal(JSON.parse(payload.toString())) });
-        peer.on('data', (data) => this._handleMetadata(JSON.parse(data.toString())));
-        peer.on('error', err => console.error("WebRTC peer error:", err));
-    }
-    
-    async _handleMetadata(metadata) {
-        if (metadata.type === 'init') {
-            this.encryptionKey = await CryptoUtils.importKey(metadata.encryptionKey);
-            this.player = new Player(remoteVideo, metadata.mimeType);
-            updateStatus('Streaming', 'green');
-            playStreamBtn.textContent = 'Play'; // Reset button text
-            playStreamBtn.disabled = false; // Re-enable for potential restarts
-        } else if (metadata.type === 'chunk' && this.encryptionKey) {
-            const { index, iv, timestamp } = metadata;
-            if (index >= this.nextChunkIndex) {
-                 this.pendingChunks.set(index, { iv, timestamp });
-                 this.torrent.select(index, index, true);
-            }
-        }
-    }
-    
-    async _handlePiece(index, buffer) {
-        const metadata = this.pendingChunks.get(index);
-        if (!metadata) return;
-
-        try {
-            const decryptedChunk = await CryptoUtils.decrypt(buffer, this.encryptionKey, new Uint8Array(metadata.iv));
-            this.player.append(decryptedChunk);
-            this.pendingChunks.delete(index);
-            this.nextChunkIndex = index + 1;
-            this.latency = Date.now() - metadata.timestamp;
-            if (remoteVideo.paused) remoteVideo.play().catch(e => console.warn("Autoplay failed:", e));
-        } catch (e) {
-            console.error(`Decryption failed for chunk ${index}:`, e);
-        }
-    }
-}
+});
